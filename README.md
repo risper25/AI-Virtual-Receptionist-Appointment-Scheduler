@@ -9,8 +9,6 @@ Automate customer conversations with an **AI-powered virtual receptionist**. Thi
 ## 📖 How It Works  
 
 1. **Welcome the customer when the customer says hi**  
-   - AI greets warmly: *“Hello! I’m [AI name] from [Business name].”*  
-
 2. **Answer general questions**  
    - Provides instant replies about services, pricing, business location, hours, and availability.  
 
