@@ -1,0 +1,414 @@
+{
+  "meta": {
+    "instanceId": "a2decaa80798f56a13dbca1aa742181dfea463e822cc650b5a716ef8b115667a",
+    "templateCredsSetupCompleted": true
+  },
+  "nodes": [
+    {
+      "id": "f1d45165-2911-4495-8c05-572cf5682052",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        896,
+        112
+      ],
+      "parameters": {
+        "contextWindowLength": 15
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "b79f576d-06a5-47fe-ac07-221412444c10",
+      "name": "Dynamic AI Receptionist",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1024,
+        -112
+      ],
+      "parameters": {
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "=# {{ $json['ai_name '] }} - {{ $json.business_name }} Virtual Receptionist\n\nYou are {{ $json['ai_name '] }}, the {{ $json.ai_personality }} virtual receptionist at **{{ $json.business_name }}**. Your role is to {{ $json.ai_role }}\n\n## BUSINESS ESSENTIALS\n\n**Type**: {{ $json[' business_type'] }}\n**Location**:  {{ $json[' location'] }}\n**Hours**:  {{ $json[' working_hours '] }}\n**Currency**: {{ $json.currency }}\n\n### Services & Pricing\n{{ $json.services }}\n\n## COMMUNICATION STYLE\n- **Tone**: {{ $json.ai_personality }}\n- **Length**: 2-3 sentences per response\n- **Approach**: Natural conversation, not robotic\n- **Use names**: Once provided, use customer's name\n\n## BOOKING WORKFLOW\n1. **Understand need**: Service type, timing preference\n2. **Check availability**: Use checkAvailability tool with business calendar\n3. **Gather details**: Name, phone number, email (optional)\n4. **Confirm booking**: Use bookAppointment tool\n5. **Save data**: Use captureCustomerData and saveAppointment tools\ntime now: {{ $now }}\n\n## KEY GUIDELINES\n\n### ✅ DO\n- Welcome warmly: \"Hello! I'm {{ $json['ai_name '] }} from {{ $json.business_name }}\"\n- Offer alternatives if requested time unavailable\n- Prioritize emergencies if emergency services available\n- Explain pricing clearly when asked\n- Use all available tools for complete booking process\n\n### ❌ DON'T\n- Give medical/professional advice outside your scope\n- Book outside business hours\n- Repeat questions already answered\n- Ask for unnecessary personal information\n- Provide vague responses about availability\n\n## EMERGENCY PROTOCOL\n{% if $('Select Business Context').item.json.emergency_available %}\nEmergencies are available. Prioritize urgent requests and offer same-day slots when possible.\n{% endif %}\n\n## BUSINESS CONTEXT\n\n- Timezone: {{ $json['timezone '] }}\n- Advance booking limit:{{ $json[' booking_advance_days '] }}  days\n- Cancellation policy: {{ $json['cancellation_hours '] }} hours notice\n\n---\nProvide responses in this JSON format:\n{\n  \"ai_reply\": \"Your helpful and personalized response here\"\n}\n\n**Remember**: You're representing {{ $json.business_name }}. Be helpful, accurate, and maintain the professional standard they expect."
+        },
+        "promptType": "define",
+        "hasOutputParser": true
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "e66b129e-be7e-4091-9c64-c420804b7916",
+      "name": "Check Calendar Availability",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "position": [
+        1280,
+        112
+      ],
+      "parameters": {
+        "options": {},
+        "timeMax": "={{ $fromAI('end_datetime', `End datetime in ISO format with timezone (YYYY-MM-DDTHH:MM:SS+TZ) for availability check`, 'string') }}",
+        "timeMin": "={{ $fromAI('start_datetime', `Start datetime in ISO format with timezone (YYYY-MM-DDTHH:MM:SS+TZ) for availability check`, 'string') }}",
+        "calendar": {
+          "__rl": true,
+          "mode": "list",
+          "value": "ris362720@gmail.com",
+          "cachedResultName": "ris362720@gmail.com"
+        },
+        "resource": "calendar"
+      },
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ZKFdGvnaSxLoLCiO",
+          "name": "Google Calendar account"
+        }
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "6042312f-a524-4473-b6b8-bd7591deb731",
+      "name": "Book Calendar Appointment",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "position": [
+        1152,
+        112
+      ],
+      "parameters": {
+        "end": "={{ $fromAI('end_datetime', `End datetime in ISO format with timezone (YYYY-MM-DDTHH:MM:SS+TZ)`, 'string') }}",
+        "start": "={{ $fromAI('start_datetime', `Start datetime in ISO format with timezone (YYYY-MM-DDTHH:MM:SS+TZ)`, 'string') }}",
+        "calendar": {
+          "__rl": true,
+          "mode": "list",
+          "value": "ris362720@gmail.com",
+          "cachedResultName": "ris362720@gmail.com"
+        },
+        "additionalFields": {
+          "summary": "={{ $fromAI('event_title', `Event title with customer name and service`, 'string') }}",
+          "description": "={{ $fromAI('event_description', `Detailed event description including: Business name, Service type, Duration, Customer name, Phone, Special notes`, 'string') }}"
+        },
+        "useDefaultReminders": false
+      },
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ZKFdGvnaSxLoLCiO",
+          "name": "Google Calendar account"
+        }
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "2a50f8cb-a22d-45a7-ad98-49d7e7b2a7f3",
+      "name": "Save Appointment Record",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "position": [
+        1024,
+        112
+      ],
+      "parameters": {
+        "columns": {
+          "value": {
+            "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('summary', `summary conversation`, 'string') }}",
+            "event_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('event_id', ``, 'string') }}",
+            "services": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('services', ``, 'string') }}",
+            "patient name ": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('patient_name_', ``, 'string') }}",
+            "patient number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('patient_number', ``, 'string') }}"
+          },
+          "schema": [
+            {
+              "id": "patient number",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "patient number",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient name ",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "patient name ",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_id",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "event_id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "summary",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "summary",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "services",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "services",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {},
+        "operation": "append",
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": 1454968607,
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sEfkvCT_4GGlleZKcQfWy1Z8V2FEg2BH2eY0LDzrnt8/edit#gid=1454968607",
+          "cachedResultName": "Sheet2"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1sEfkvCT_4GGlleZKcQfWy1Z8V2FEg2BH2eY0LDzrnt8",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sEfkvCT_4GGlleZKcQfWy1Z8V2FEg2BH2eY0LDzrnt8/edit?usp=drivesdk",
+          "cachedResultName": "Bussiness  details"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "fGbQfgGA6gTKu9Jd",
+          "name": "Google Sheets account"
+        }
+      },
+      "typeVersion": 4.6
+    },
+    {
+      "id": "b9cb5879-6535-44aa-8ea5-3badc64ce9a7",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "disabled": true,
+      "position": [
+        1408,
+        112
+      ],
+      "parameters": {
+        "autoFix": true,
+        "jsonSchemaExample": "{\n  \"ai_reply\": \"I'd be happy to help you! What service are you interested in booking today?\"\n}"
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "bee7cc5b-d89d-48b9-8311-692f4ec975f0",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        320,
+        -112
+      ],
+      "webhookId": "73eb01dc-fa71-4f00-b3e8-17e716ef86f6",
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "7cb5f424-aaa7-41a6-bda8-932cdebb81c1",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        768,
+        112
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "TEPbLQLrisXKXcU1",
+          "name": "n8n free OpenAI API credits"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "fb6670d9-0209-4b0d-9b3c-11d0fb6d36b7",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1488,
+        320
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "TEPbLQLrisXKXcU1",
+          "name": "n8n free OpenAI API credits"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "6a645f3c-2ecf-4b93-90ad-539f5a206b25",
+      "name": "Get business details",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        544,
+        -112
+      ],
+      "parameters": {
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sEfkvCT_4GGlleZKcQfWy1Z8V2FEg2BH2eY0LDzrnt8/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1sEfkvCT_4GGlleZKcQfWy1Z8V2FEg2BH2eY0LDzrnt8",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sEfkvCT_4GGlleZKcQfWy1Z8V2FEg2BH2eY0LDzrnt8/edit?usp=drivesdk",
+          "cachedResultName": "Bussiness  details"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "fGbQfgGA6gTKu9Jd",
+          "name": "Google Sheets account"
+        }
+      },
+      "typeVersion": 4.7
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get business details": {
+      "main": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dynamic AI Receptionist": {
+      "main": [
+        []
+      ]
+    },
+    "Save Appointment Record": {
+      "ai_tool": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Calendar Appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get business details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Calendar Availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "Dynamic AI Receptionist",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
