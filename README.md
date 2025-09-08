@@ -3,7 +3,7 @@ AI Virtual Receptionist &amp; Appointment Scheduler( Customizable for Any Busine
 # 🤖 AI Virtual Receptionist & Appointment Booking Assistant – Customizable for Any Business  
 
 Automate customer conversations with an **AI-powered virtual receptionist**. This workflow can **chat naturally with clients**, **answer general business questions** (like services, location, and hours), **check availability in Google Calendar**, **book appointments**, and **save customer details in Google Sheets**. Fully customizable for **any business type** — salons, clinics, agencies, consultants, and more.  
-
+<img src="https://github.com/risper25/AI-Virtual-Receptionist-Appointment-Scheduler/blob/main/Screen%20Shot%202025-09-08%20at%2009.52.39.png"/>
 ---
 
 ## 📖 How It Works  
@@ -29,8 +29,9 @@ Automate customer conversations with an **AI-powered virtual receptionist**. Thi
 7. **Save records**  
    - Logs booking and customer info into Google Sheets.  
 
+<img src="https://github.com/risper25/AI-Virtual-Receptionist-Appointment-Scheduler/blob/main/Screen%20Shot%202025-09-08%20at%2009.54.39.png"/>
 
-
+<img src="https://github.com/risper25/AI-Virtual-Receptionist-Appointment-Scheduler/blob/main/Screen%20Shot%202025-09-08%20at%2009.55.36.png">
 ---
 
 ## ⚙️ Setup Steps (Quick)  
