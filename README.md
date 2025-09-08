@@ -57,7 +57,7 @@ Automate customer conversations with an **AI-powered virtual receptionist**. Thi
 
 ## 📊 Appointments Sheet Example  
 
-| patient_number | patient_name | event_id  | summary                          | services |
+| client_id      | client_name | event_id  | summary                          | services |
 |----------------|-------------|-----------|----------------------------------|----------|
 | 001            | Sarah Lee   | evt-10293 | Appointment with Sarah Lee – Haircut & Styling | Haircut & Styling |
 | 002            | John Smith  | evt-10294 | Appointment with John Smith – Highlights | Highlights |
